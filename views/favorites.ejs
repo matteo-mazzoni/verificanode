@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>I miei Preferiti</title>
+    <style>
+        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 20px; }
+        .movie-card { border: 1px solid #ddd; padding: 10px; border-radius: 8px; }
+        .movie-card img { width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+    <h1>Preferiti di <%= username %></h1>
+    <p><a href="/login">← Torna al login</a></p>
+
+    <% if (!favorites || favorites.length === 0) { %>
+        <p>Non hai ancora aggiunto film ai preferiti.</p>
+    <% } else { %>
+        <div id="favoritesGrid" class="movie-grid">
+            <% favorites.forEach(movie => { %>
+                <div class="movie-card" data-id="<%= movie.id %>">
+                    <% if (movie.poster_path) { %>
+                        <img src="https://image.tmdb.org/t/p/w500<%= movie.poster_path %>" alt="<%= movie.title %>">
+                    <% } %>
+                    <h3><%= movie.title %></h3>
+                    <p><%= movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A' %></p>
+                    <p><%= movie.overview ? (movie.overview.length > 140 ? movie.overview.substring(0,140) + '...' : movie.overview) : '' %></p>
+                    <button onclick="removeFavorite('<%= movie.id %>')">Rimuovi dai Preferiti</button>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+
+    <script>
+        async function removeFavorite(movieId) {
+            try {
+                const resp = await fetch('/favorites/remove/' + encodeURIComponent(movieId), { method: 'DELETE' });
+                if (!resp.ok) {
+                    alert('Errore durante la rimozione');
+                    return;
+                }
+                // rimuovi dall'UI
+                const el = document.querySelector('[data-id="' + movieId + '"]');
+                if (el) el.remove();
+                // se vuoto, mostra messaggio
+                const grid = document.getElementById('favoritesGrid');
+                if (!grid || grid.children.length === 0) {
+                    location.reload();
+                }
+            } catch (err) {
+                alert('Errore durante la rimozione');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -37,7 +37,7 @@
     </section>
 
     <p>
-        <a href="/logout">Logout</a>
+        <a href="/logout">Logout</a> | <a href="/favorites/view">Apri pagina Preferiti</a>
     </p>
 
     <script>
@@ -52,53 +52,77 @@
                 const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
                 const data = await response.json();
 
-                resultsDiv.innerHTML = data.movies.map(movie => `
-                    <div class="movie-card">
-                        ${movie.poster_path
-                            ? `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">`
-                            : ''}
-                        <h3>${movie.title}</h3>
-                        <p>${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
-                        <p>${movie.overview ? movie.overview.substring(0, 100) + '...' : ''}</p>
-                        <button onclick="addToFavorites(${JSON.stringify(movie).replace(/"/g, '&quot;')})">
-                            Aggiungi ai Preferiti
-                        </button>
-                    </div>
-                `).join('');
+                resultsDiv.innerHTML = data.movies.map(movie => {
+                    const encoded = encodeURIComponent(JSON.stringify(movie));
+                    return `
+                        <div class="movie-card">
+                            ${movie.poster_path ? `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">` : ''}
+                            <h3>${movie.title}</h3>
+                            <p>${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
+                            <p>${movie.overview ? movie.overview.substring(0, 100) + '...' : ''}</p>
+                            <button data-movie="${encoded}" onclick="addToFavoritesEncoded(this.dataset.movie)">
+                                Aggiungi ai Preferiti
+                            </button>
+                        </div>
+                    `;
+                }).join('');
             } catch (error) {
                 resultsDiv.innerHTML = '<p>Errore durante la ricerca</p>';
             }
         }
 
-        async function addToFavorites(movie) {
+        async function addToFavoritesEncoded(encoded) {
             try {
-                const response = await fetch('/favorites/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(movie)
-                });
-                
+                // fallback: invia come query string per evitare dipendenza da body parser
+                const url = `/favorites/add?movie=${encoded}`;
+                const response = await fetch(url, { method: 'GET' });
+
                 if (response.ok) {
-                    favorites.push(movie);
-                    displayFavorites();
-                    alert('Film aggiunto ai preferiti!');
+                    const movie = JSON.parse(decodeURIComponent(encoded));
+                    // evita duplicati in UI
+                    if (!favorites.find(m => String(m.id) === String(movie.id))) {
+                        favorites.push(movie);
+                        updateFavoritesList();
+                    }
+                } else {
+                    const err = await response.json().catch(()=>({}));
+                    alert('Errore: ' + (err.error || 'Impossibile aggiungere ai preferiti'));
                 }
             } catch (error) {
                 alert('Errore durante l\'aggiunta ai preferiti');
             }
         }
 
+        async function updateFavoritesList() {
+            const favoritesContainer = document.getElementById('favorites-list');
+            if (!favoritesContainer) return;
+
+            if (!favorites || favorites.length === 0) {
+                favoritesContainer.innerHTML = '<p>Non hai ancora aggiunto film ai preferiti.</p>';
+                return;
+            }
+
+            favoritesContainer.innerHTML = favorites.map(movie => `
+                <div class="movie-card" data-id="${movie.id}">
+                    ${movie.poster_path ? `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}" style="width:100%">` : ''}
+                    <h4>${movie.title}</h4>
+                    <p>${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
+                    <button onclick="removeFromFavorites('${movie.id}')">Rimuovi</button>
+                </div>
+            `).join('');
+        }
+
         async function removeFromFavorites(movieId) {
             try {
-                const response = await fetch(`/favorites/remove/${movieId}`, {
+                const response = await fetch(`/favorites/remove/${encodeURIComponent(movieId)}`, {
                     method: 'DELETE'
                 });
+
                 if (response.ok) {
-                    favorites = favorites.filter(m => m.id !== movieId);
-                    displayFavorites();
-                    alert('Film rimosso dai preferiti!');
+                    favorites = favorites.filter(m => String(m.id) !== String(movieId));
+                    updateFavoritesList();
+                } else {
+                    alert('Errore durante la rimozione dai preferiti');
                 }
             } catch (error) {
                 alert('Errore durante la rimozione dai preferiti');
@@ -109,35 +133,13 @@
             try {
                 const response = await fetch('/favorites');
                 const data = await response.json();
-                favorites = data;
-                displayFavorites();
+                favorites = Array.isArray(data) ? data : [];
+                updateFavoritesList();
             } catch (error) {
                 console.error('Errore nel caricamento dei preferiti:', error);
             }
         }
 
-        function displayFavorites() {
-            const favoritesList = document.getElementById('favorites-list');
-            if (favorites.length === 0) {
-                favoritesList.innerHTML = '<p>Nessun film nei preferiti</p>';
-                return;
-            }
-
-            favoritesList.innerHTML = favorites.map(movie => `
-                <div class="movie-card">
-                    ${movie.poster_path
-                        ? `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">` 
-                        : ''}
-                    <h3>${movie.title}</h3>
-                    <p>${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
-                    <button onclick="removeFromFavorites(${movie.id})">
-                        Rimuovi dai preferiti
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        // Carica i preferiti all'avvio della pagina
         loadFavorites();
     </script>
     <main>
@@ -163,9 +165,7 @@
             <!-- Visualizzazione Liste -->
             <ul role="list" aria-label="Liste personalizzate salvate">
                 <li role="listitem">
-                    <!-- Link alla Pagina Lista Specifica -->
                     <a href="/lists/azione">Lista Esempio 1</a>
-                    <!-- Gestione: Cancella Lista -->
                     <form action="/lists/delete/azione" method="post">
                         <input type="hidden" name="list_id" value="azione">
                         <button type="submit">Cancella Lista</button>

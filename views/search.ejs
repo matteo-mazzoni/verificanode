@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cerca Film</title>
+    <style>
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .movie-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .movie-card img {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cerca Film</h1>
+    
+    <form action="/search" method="GET">
+        <input type="text" name="q" value="<%= query %>" placeholder="Cerca un film..." required>
+        <button type="submit">Cerca</button>
+    </form>
+
+    <% if (locals.error) { %>
+        <p style="color: red;"><%= error %></p>
+    <% } %>
+
+    <div class="movie-grid">
+        <% if (movies && movies.length > 0) { %>
+            <% movies.forEach(movie => { %>
+                <div class="movie-card">
+                    <% if (movie.poster_path) { %>
+                        <img src="<%= imageBasePath + movie.poster_path %>" alt="<%= movie.title %>">
+                    <% } %>
+                    <h3><%= movie.title %></h3>
+                    <p><%= movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A' %></p>
+                    <p><%= movie.overview ? movie.overview.substring(0, 100) + '...' : 'Nessuna descrizione disponibile' %></p>
+                </div>
+            <% }); %>
+        <% } else if (query) { %>
+            <p>Nessun risultato trovato per "<%= query %>"</p>
+        <% } %>
+    </div>
+</body>
+</html>

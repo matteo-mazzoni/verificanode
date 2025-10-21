@@ -9,7 +9,8 @@ import {
     searchMovies,
     addToFavorites,
     getFavorites,
-    removeFromFavorites
+    removeFromFavorites,
+    showFavorites
 } from '../controllers/authController.js';
 
 const router = express.Router();
@@ -26,8 +27,13 @@ router.get('/logout', logout);
 
 router.get('/search', searchMovies);
 
+// favorites API endpoints
 router.post('/favorites/add', addToFavorites);
+router.get('/favorites/add', addToFavorites); // fallback: accept movie via query string
 router.get('/favorites', getFavorites);
 router.delete('/favorites/remove/:movieId', removeFromFavorites);
+
+// page view for favorites
+router.get('/favorites/view', showFavorites);
 
 export default router;
