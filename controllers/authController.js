@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
+import passport from 'passport';  // Add this import
 
 export const showLogin = (req, res) => res.render('login');
 export const showSignup = (req, res) => res.render('signup');
@@ -32,7 +33,11 @@ export const login = async (req, res) => {
             { expiresIn: '24h' }
         );
 
-        res.json({ token });
+        // Renderizza la dashboard invece di restituire JSON
+        res.render('dashboard', { 
+            username: user.username,
+            token: token
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Errore durante il login' });
