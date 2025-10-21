@@ -7,7 +7,13 @@ import dotenv from "dotenv";
 import { connectDB, sequelize } from "./config/db.js";
 import tmdbRoutes from "./routes/tmdbRoutes.js";
 import Media from "./models/Media.js"; // importa i modelli almeno una volta all'avvio
+// importa i modelli (registrazione su sequelize)
+import User from "./models/User.js";
+import Media from "./models/Media.js";
+import UserMedia from "./models/UserMedia.js";
 dotenv.config();
+
+
 
 // db and models
 import { sequelize, connectDB } from './config/db.js';
@@ -62,7 +68,7 @@ app.listen(PORT, () => console.log(`Server su http://localhost:${PORT}`));
 
 //
 dotenv.config();
-const app = express();
+//const app = express();
 app.use(express.json());
 
 // DB
@@ -75,5 +81,45 @@ await sequelize.sync({ alter: true });
 // API
 app.use("/api/tmdb", tmdbRoutes);
 
-const PORT = process.env.PORT || 3000;
+//const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server su http://localhost:${PORT}`));
+
+
+// definisci associazioni
+User.belongsToMany(Media, {
+  through: UserMedia,
+  foreignKey: "userId",
+  otherKey: "mediaId",
+  as: "library",
+});
+Media.belongsToMany(User, {
+  through: UserMedia,
+  foreignKey: "mediaId",
+  otherKey: "userId",
+  as: "followers",
+});
+UserMedia.belongsTo(User, { foreignKey: "userId" });
+UserMedia.belongsTo(Media, { foreignKey: "mediaId" });
+User.hasMany(UserMedia, { foreignKey: "userId" });
+Media.hasMany(UserMedia, { foreignKey: "mediaId" });
+
+// registra nel registry (opzionale se hai importato sopra)
+sequelize.models.User = User;
+sequelize.models.Media = Media;
+sequelize.models.UserMedia = UserMedia;
+
+// rotte
+import tmdbRoutes from "./routes/tmdbRoutes.js";
+import userMediaRoutes from "./routes/userMediaRoutes.js";
+
+dotenv.config();
+app.use(express.json());
+
+await connectDB();
+await sequelize.sync({ alter: true }); // dev only
+
+app.use("/api/tmdb", tmdbRoutes);
+app.use("/api/user-media", userMediaRoutes);
+
+
 app.listen(PORT, () => console.log(`Server su http://localhost:${PORT}`));
