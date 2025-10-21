@@ -21,8 +21,67 @@
         <textarea readonly style="width:100%;height:120px;"><%= token %></textarea>
     </section>
 
-    <p>
-        <a href="/logout">Logout</a>
-    </p>
+    <header>
+        <h1>Dashboard Utente</h1>
+        <nav role="navigation" aria-label="Navigazione e azioni utente">
+            <!-- Controllo per logout -->
+            <section role="group" aria-label="Uscita e profilo">
+                <form action="/logout" method="post">
+                    <button type="submit">Log Out</button>
+                </form>
+            </section>
+
+            <!-- Barra di Ricerca con Funzionalità "Aggiungi ai Preferiti" -->
+            <form action="/search" method="get">
+                <label for="search-input-post">Cerca e Aggiungi Film:</label>
+                <input type="search" name="query" id="search-input-post" placeholder="Cerca film da aggiungere...">
+                <button type="submit">Cerca</button>
+                <!-- Pulsante per "Aggiungi film ai preferiti" -->
+                <button type="submit" name="action" value="add_to_favorites">Aggiungi ai Preferiti</button>
+            </form>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Sezione "I miei Preferiti" -->
+        <section aria-labelledby="heading-preferiti">
+            <h2 id="heading-preferiti">I miei Preferiti</h2>
+            <ul role="list" aria-label="Elenco film e serie preferite">
+            </ul>
+        </section>
+
+        <!-- Sezione "Le mie Liste Personalizzate" -->
+        <section aria-labelledby="heading-liste">
+            <h2 id="heading-liste">Le mie Liste Personalizzate</h2>
+            
+            <!-- Creazione Lista -->
+            <form action="/lists/create" method="post" aria-label="Crea una nuova lista">
+                <label for="new-list-name">Nome Nuova Lista:</label>
+                <input type="text" name="list_name" id="new-list-name" placeholder="es. Commedie Anni '80">
+                <button type="submit">Crea Nuova Lista</button>
+            </form>
+
+            <!-- Visualizzazione Liste -->
+            <ul role="list" aria-label="Liste personalizzate salvate">
+                <li role="listitem">
+                    <!-- Link alla Pagina Lista Specifica -->
+                    <a href="/lists/azione">Lista Azione</a>
+                    <!-- Gestione: Cancella Lista -->
+                    <form action="/lists/delete/azione" method="post">
+                        <input type="hidden" name="list_id" value="azione">
+                        <button type="submit">Cancella Lista</button>
+                    </form>
+                </li>
+                <li role="listitem">
+                    <a href="/lists/drama">Lista Drama</a>
+                    <form action="/lists/delete/drama" method="post">
+                        <input type="hidden" name="list_id" value="drama">
+                        <button type="submit">Cancella Lista</button>
+                    </form>
+                </li>
+            </ul>
+        </section>
+    </main>
+
 </body>
 </html>
