@@ -1,12 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
-<<<<<<< HEAD
-import passport from 'passport';  // Add this import
-=======
 import passport from 'passport';
 import '../config/passport.js'; // esegue la configurazione della strategia JWT
->>>>>>> 6631800f5e28768006290e35ad5b4cbce5c1ba14
 
 export const showLogin = (req, res) => res.render('login');
 export const showSignup = (req, res) => res.render('signup');
@@ -38,23 +34,18 @@ export const login = async (req, res) => {
             { expiresIn: '24h' }
         );
 
-<<<<<<< HEAD
-        // Renderizza la dashboard invece di restituire JSON
-        res.render('dashboard', { 
-            username: user.username,
-            token: token
-=======
         // salva solo i dati minimi in sessione
         req.session.user = { id: user.id, username: user.username };
         req.session.token = token;
 
+        // Assicurati che la sessione sia persistita prima di mostrare la dashboard
         req.session.save(err => {
             if (err) {
                 console.error('Errore salvataggio sessione:', err);
                 return res.status(500).send('Errore durante la creazione della sessione');
             }
+            // Renderizza direttamente la dashboard per evitare "pagina non trovata"
             return res.render('dashboard', { username: user.username, token });
->>>>>>> 6631800f5e28768006290e35ad5b4cbce5c1ba14
         });
     } catch (error) {
         console.error(error);
