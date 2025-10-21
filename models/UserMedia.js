@@ -1,27 +1,40 @@
 // models/UserMedia.js
-const mongoose = require('mongoose');
+import { DataTypes } from "sequelize";
+import { sequelize } from "../config/db.js";
 
-const UserMediaSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true, required: true },
-  media: { type: mongoose.Schema.Types.ObjectId, ref: 'Media', index: true, required: true },
+const UserMedia = sequelize.define(
+  "UserMedia",
+  {
+    id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
 
-  // stato nelle liste personali (ponte con punto C)
-  status: { 
-    type: String, 
-    enum: ['to_watch','watching','watched','favorite'], 
-    default: 'to_watch', 
-    index: true 
+    // Relazioni (FK)
+    userId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+    mediaId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+
+    // Stato personale (es. preferiti, guardati, ecc.)
+    status: {
+      type: DataTypes.ENUM("to_watch", "watching", "watched", "favorite"),
+      allowNull: false,
+      defaultValue: "to_watch",
+    },
+
+    // Rating e commenti personali
+    personalRating: { type: DataTypes.FLOAT, allowNull: true, validate: { min: 0, max: 10 } },
+    personalComment: { type: DataTypes.TEXT, allowNull: true },
+
+    // Quando l’utente l’ha visto (opzionale)
+    watchedAt: { type: DataTypes.DATE, allowNull: true },
   },
+  {
+    tableName: "UserMedia",
+    timestamps: true,
+    indexes: [
+      { fields: ["userId"] },
+      { fields: ["mediaId"] },
+      { fields: ["status"] },
+      { unique: true, fields: ["userId", "mediaId"] }, // evita duplicati
+    ],
+  }
+);
 
-  // dati personali dell'utente su quel titolo
-  personalRating: { type: Number, min: 0, max: 10 },
-  personalComment: { type: String },
-
-  // opzionale: quando l'utente l'ha visto
-  watchedAt: { type: Date }
-}, { timestamps: true });
-
-// Evita duplicati per (user, media)
-UserMediaSchema.index({ user: 1, media: 1 }, { unique: true });
-
-module.exports = mongoose.model('UserMedia', UserMediaSchema);
+export default UserMedia;
