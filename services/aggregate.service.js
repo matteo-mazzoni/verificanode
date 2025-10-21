@@ -1,5 +1,6 @@
 
 import { sequelize } from "../config/db.js";
+import { Op } from "sequelize";
 const { UserMedia, Comment, Media } = sequelize.models;
 
 /**
@@ -13,7 +14,7 @@ const { UserMedia, Comment, Media } = sequelize.models;
 export async function recomputeMediaAggregates(mediaId) {
   // 1) rating medio e count da UserMedia
   const ratings = await UserMedia.findAll({
-    where: { mediaId, personalRating: { [sequelize.Op.not]: null } },
+     where: { mediaId, personalRating: { [Op.not]: null } },
     attributes: ["personalRating"],
     raw: true,
   });
@@ -27,11 +28,18 @@ export async function recomputeMediaAggregates(mediaId) {
   // 2) numero commenti
   const commentsCount = await Comment.count({ where: { mediaId } });
 
-  // 3) aggiorna Media (aggiungi le colonne se non esistono già)
-  await Media.update(
-    { avgPersonalRating, ratingsCount, commentsCount },
-    { where: { id: mediaId } }
-  );
+   // 3) aggiorna Media (se le colonne non esistono ancora, non fallire l'intera richiesta)
+  try {
+    await Media.update(
+      { avgPersonalRating, ratingsCount, commentsCount },
+      { where: { id: mediaId } }
+    );
+  } catch (e) {
+    console.warn(
+      "[aggregate] colonne aggregate mancanti su Media. Aggiungile in models/Media.js:",
+      "avgPersonalRating (FLOAT), ratingsCount (INT), commentsCount (INT)"
+    );
+  }
 
   return { avgPersonalRating, ratingsCount, commentsCount };
 }

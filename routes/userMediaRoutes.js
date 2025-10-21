@@ -1,7 +1,7 @@
 
 import { Router } from "express";
 import {
-  listUserMedia,
+ listUserMedia,
   upsertUserMedia,
   updateStatus,
   updateRating,

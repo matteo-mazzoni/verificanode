@@ -35,6 +35,20 @@ export async function listUserMedia(req, res) {
   }
 }
 
+
+// list library
+const items = await UserMedia.findAll({
+  where: { userId },
+  include: [
+    {
+      model: Media,               // ✅ niente "as" se non hai definito alias in associazione
+      attributes: ["id","tmdbId","mediaType","title","posterUrl","voteAverage","year","backdropUrl",
+                   "avgPersonalRating","ratingsCount","commentsCount"]
+    }
+  ],
+  order: [["updatedAt", "DESC"]],
+});
+
 export async function upsertUserMedia(req, res) {
   try {
     const userId = getUserId(req);
