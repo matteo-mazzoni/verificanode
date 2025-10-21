@@ -36,10 +36,6 @@
         <textarea readonly style="width:100%;height:120px;"><%= token %></textarea>
     </section>
 
-    <p>
-        <a href="/logout">Logout</a> | <a href="/favorites/view">Apri pagina Preferiti</a>
-    </p>
-
     <script>
         let favorites = [];
 
@@ -150,35 +146,6 @@
                 <!-- I preferiti verranno inseriti qui dinamicamente -->
             </div>
         </section>
-
-        <!-- Sezione "Le mie Liste Personalizzate" -->
-        <section aria-labelledby="heading-liste">
-            <h2 id="heading-liste">Le mie Liste Personalizzate</h2>
-
-            <!-- Creazione Lista -->
-            <form action="/lists/create" method="post" aria-label="Crea una nuova lista">
-                <label for="new-list-name">Nome Nuova Lista:</label>
-                <input type="text" name="list_name" id="new-list-name" placeholder="es. Commedie Anni '80">
-                <button type="submit">Crea Nuova Lista</button>
-            </form>
-
-            <!-- Visualizzazione Liste -->
-            <ul role="list" aria-label="Liste personalizzate salvate">
-                <li role="listitem">
-                    <a href="/lists/azione">Lista Esempio 1</a>
-                    <form action="/lists/delete/azione" method="post">
-                        <input type="hidden" name="list_id" value="azione">
-                        <button type="submit">Cancella Lista</button>
-                    </form>
-                </li>
-                <li role="listitem">
-                    <a href="/lists/drama">Lista Esempio 2</a>
-                    <form action="/lists/delete/drama" method="post">
-                        <input type="hidden" name="list_id" value="drama">
-                        <button type="submit">Cancella Lista</button>
-                    </form>
-                </li>
-            </ul>
-        </section>
+    </main>
 </body>
 </html>

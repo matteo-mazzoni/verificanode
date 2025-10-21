@@ -8,6 +8,7 @@ dotenv.config();
 // db and models
 import { sequelize, connectDB } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import listRoutes from './routes/listRoutes.js';
 
 // app setup
 const app = express();
@@ -33,6 +34,7 @@ app.use((req, res, next) => {
 
 // rotte principali
 app.use('/', authRoutes);
+app.use('/lists', listRoutes);
 
 // fallback 404
 app.all('*', (req, res) => {

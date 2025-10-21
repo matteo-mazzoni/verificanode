@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>lists</title>
+</head>
+<body>
+    <div class="nav-bar">
+        <h1>Le Mie Liste</h1>
+    </div>
+
+    <% if (lists && lists.length > 0) { %>
+        <div class="lists-container">
+            <% lists.forEach(list => { %>
+                <div class="list-card">
+                    <h3><%= list.title %></h3>
+                    <p><%= list.description || 'Nessuna descrizione' %></p>
+                    <p><small>Elementi: <%= list.content ? list.content.length : 0 %></small></p>
+                    <div class="list-actions">
+                        <a href="/lists/<%= list.id %>" class="btn btn-primary">Visualizza</a>
+                        <a href="/lists/edit/<%= list.id %>" class="btn btn-secondary">Modifica</a>
+                        <form action="/lists/<%= list.id %>/delete" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Sei sicuro di voler eliminare questa lista?')">Elimina</button>
+                        </form>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    <% } else { %>
+        <div class="empty-state">
+            <h2>Non hai ancora creato nessuna lista</h2>
+            <p>Crea la tua prima lista per iniziare a organizzare i tuoi film e serie TV preferiti.</p>
+            <button id="createFirstListBtn" class="btn btn-primary">Crea la tua prima lista</button>
+        </div>
+    <% } %>
+
+    <!-- Modal per creare una nuova lista -->
+    <div id="createListModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Crea Nuova Lista</h2>
+            <form action="/lists" method="POST">
+                <div class="form-group">
+                    <label for="title">Titolo</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Descrizione</label>
+                    <textarea id="description" name="description" rows="4"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Crea Lista</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Modal
+        const modal = document.getElementById("createListModal");
+        const createBtn = document.getElementById("createListBtn");
+        const createFirstBtn = document.getElementById("createFirstListBtn");
+        const closeBtn = document.getElementsByClassName("close")[0];
+
+        // Apri il modal quando si clicca sul pulsante
+        if (createBtn) {
+            createBtn.onclick = function() {
+                modal.style.display = "block";
+            }
+        }
+
+        // Apri il modal quando si clicca sul pulsante "crea la tua prima lista"
+        if (createFirstBtn) {
+            createFirstBtn.onclick = function() {
+                modal.style.display = "block";
+            }
+        }
+
+        // Chiudi il modal quando si clicca sulla X
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // Chiudi il modal quando si clicca fuori dal modal
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title><%= list.title %> - Dettaglio Lista</title>
+
+</head>
+<body>
+    <div class="nav-bar">
+        <h1><%= list.title %></h1>
+        <div>
+            <a href="/lists" class="btn btn-secondary">Torna alle Liste</a>
+            <a href="/lists/edit/<%= list.id %>" class="btn btn-primary">Modifica Lista</a>
+            <form action="/lists/<%= list.id %>/delete" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Sei sicuro di voler eliminare questa lista?')">Elimina Lista</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="list-header">
+        <p class="list-description"><%= list.description || 'Nessuna descrizione' %></p>
+    </div>
+
+    <!-- Sezione di ricerca -->
+    <div class="search-section">
+        <h3>Cerca film o serie TV da aggiungere</h3>
+        <div class="search-form">
+            <input type="text" id="searchInput" class="search-input" placeholder="Titolo del film o serie TV...">
+            <button onclick="searchMedia()" class="btn btn-primary">Cerca</button>
+        </div>
+        <div id="searchResults" class="search-results"></div>
+    </div>
+
+    <!-- Elementi della lista -->
+    <h2>Elementi nella lista</h2>
+    <% if (list.content && list.content.length > 0) { %>
+        <div class="items-container">
+            <% list.content.forEach(item => { %>
+                <div class="item-card">
+                    <img src="<%= item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : 'https://via.placeholder.com/200x300?text=No+Image' %>" alt="<%= item.title || item.name %>">
+                    <div class="item-info">
+                        <h3 class="item-title"><%= item.title || item.name %></h3>
+                        <p class="item-year"><%= item.release_date ? new Date(item.release_date).getFullYear() : (item.first_air_date ? new Date(item.first_air_date).getFullYear() : 'N/A') %></p>
+                    </div>
+                    <form action="/lists/<%= list.id %>/remove-item/<%= item.id %>" method="POST">
+                        <button type="submit" class="remove-item" title="Rimuovi dalla lista">×</button>
+                    </form>
+                </div>
+            <% }); %>
+        </div>
+    <% } else { %>
+        <div class="empty-state">
+            <h3>Nessun elemento nella lista</h3>
+            <p>Cerca film o serie TV sopra per aggiungerli alla tua lista.</p>
+        </div>
+    <% } %>
+
+    <script>
+        async function searchMedia() {
+            const query = document.getElementById('searchInput').value;
+            if (!query) return;
+
+            try {
+                const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                displaySearchResults(data);
+            } catch (error) {
+                console.error('Errore durante la ricerca:', error);
+            }
+        }
+
+        function displaySearchResults(results) {
+            const resultsContainer = document.getElementById('searchResults');
+            resultsContainer.innerHTML = '';
+
+            if (!results || results.length === 0) {
+                resultsContainer.innerHTML = '<p>Nessun risultato trovato.</p>';
+                return;
+            }
+
+            results.forEach(item => {
+                const resultElement = document.createElement('div');
+                resultElement.className = 'search-result';
+                
+                const posterUrl = item.poster_path 
+                    ? `https://image.tmdb.org/t/p/w200${item.poster_path}` 
+                    : 'https://via.placeholder.com/150x225?text=No+Image';
+                
+                const title = item.title || item.name || 'Titolo sconosciuto';
+                const year = item.release_date 
+                    ? new Date(item.release_date).getFullYear() 
+                    : (item.first_air_date ? new Date(item.first_air_date).getFullYear() : 'N/A');
+                
+                resultElement.innerHTML = `
+                    <img src="${posterUrl}" alt="${title}">
+                    <div class="search-result-info">
+                        <h4 class="search-result-title">${title}</h4>
+                        <p>${year}</p>
+                    </div>
+                    <form action="/lists/<%= list.id %>/add-item" method="POST">
+                        <input type="hidden" name="mediaItem" value='${JSON.stringify(item)}'>
+                        <button type="submit" class="add-to-list">Aggiungi alla lista</button>
+                    </form>
+                `;
+                
+                resultsContainer.appendChild(resultElement);
+            });
+        }
+    </script>
+</body>
+</html>

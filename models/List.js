@@ -7,7 +7,7 @@ description: { type: DataTypes.TEXT, allowNull: true },
 //content of the list: array of movie objects
 content: { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
 tmdbListId: { type: DataTypes.STRING, allowNull: true },
-
+userId: { type: DataTypes.INTEGER, allowNull: false },
 source: { type: DataTypes.ENUM('tmdb', 'custom'), allowNull: false, defaultValue: 'custom' }
 });
 
