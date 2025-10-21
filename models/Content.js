@@ -5,24 +5,21 @@ import { sequelize } from '../config/db.js';
 
 /**
  * Content model
- *
- * Rappresenta un film o una serie TV salvata dall'utente
- * dopo averlo cercato tramite l'API di TMDb
+ * Represent a film or tv series saved by the user
  */
 const Content = sequelize.define('Content', {
-    // COLONNA 1: ID (chiave primaria)
+    // COLUMN 1: ID (primary key)
     id: {
         type: DataTypes.INTEGER,
-        primaryKey: true,          // Questa è la chiave primaria
-        autoIncrement: true        // Si incrementa automaticamente
+        primaryKey: true,          // this is the primary key
+        autoIncrement: true        // automatically incremental
     },
 
-    // COLONNA 2: ID su TMDb
-    // Conserva l'ID originale del contenuto su TMDb
-    // Serve per fare eventuali richieste future all'API
+    // COLUMN 2: ID on TMDb
+    // Retain the original ID of the content on TMDb
     tmdbId: {
         type: DataTypes.INTEGER,
-        allowNull: false           // Campo obbligatorio
+        allowNull: false           // mandatory field
     },
 
     // COLONNA 3: Tipo di contenuto
