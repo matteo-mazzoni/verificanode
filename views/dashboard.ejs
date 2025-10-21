@@ -1,59 +1,158 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
-</head>
-<body>
-    <h1>Welcome <%= username %></h1>
-    <div>
-        <h3>Your JWT Token:</h3>
-        <textarea readonly style="width: 100%; height: 100px;"><%= token %></textarea>
-    </div>
-    <a href="/logout">Logout</a>
     <meta charset="utf-8">
     <title>Dashboard</title>
+    <style>
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .movie-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .movie-card img {
+            width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
     <h1>Benvenuto, <%= username %></h1>
+
+    <section>
+        <h3>Cerca Film</h3>
+        <input type="text" id="searchInput" placeholder="Cerca un film...">
+        <button onclick="searchMovies()">Cerca</button>
+        <div id="searchResults" class="movie-grid"></div>
+    </section>
 
     <section>
         <h3>Il tuo token JWT</h3>
         <textarea readonly style="width:100%;height:120px;"><%= token %></textarea>
     </section>
 
-    <header>
-        <h1>Dashboard Utente</h1>
-        <nav role="navigation" aria-label="Navigazione e azioni utente">
-            <!-- Controllo per logout -->
-            <section role="group" aria-label="Uscita e profilo">
-                <form action="/logout" method="post">
-                    <button type="submit">Log Out</button>
-                </form>
-            </section>
+    <p>
+        <a href="/logout">Logout</a>
+    </p>
 
-            <!-- Barra di Ricerca con Funzionalità "Aggiungi ai Preferiti" -->
-            <form action="/search" method="get">
-                <label for="search-input-post">Cerca e Aggiungi Film:</label>
-                <input type="search" name="query" id="search-input-post" placeholder="Cerca film da aggiungere...">
-                <button type="submit">Cerca</button>
-                <!-- Pulsante per "Aggiungi film ai preferiti" -->
-                <button type="submit" name="action" value="add_to_favorites">Aggiungi ai Preferiti</button>
-            </form>
-        </nav>
-    </header>
+    <script>
+        let favorites = [];
 
+        async function searchMovies() {
+            const query = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('searchResults');
+            if (!query) return;
+
+            try {
+                const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                resultsDiv.innerHTML = data.movies.map(movie => `
+                    <div class="movie-card">
+                        ${movie.poster_path
+                            ? `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">`
+                            : ''}
+                        <h3>${movie.title}</h3>
+                        <p>${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
+                        <p>${movie.overview ? movie.overview.substring(0, 100) + '...' : ''}</p>
+                        <button onclick="addToFavorites(${JSON.stringify(movie).replace(/"/g, '&quot;')})">
+                            Aggiungi ai Preferiti
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                resultsDiv.innerHTML = '<p>Errore durante la ricerca</p>';
+            }
+        }
+
+        async function addToFavorites(movie) {
+            try {
+                const response = await fetch('/favorites/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(movie)
+                });
+                
+                if (response.ok) {
+                    favorites.push(movie);
+                    displayFavorites();
+                    alert('Film aggiunto ai preferiti!');
+                }
+            } catch (error) {
+                alert('Errore durante l\'aggiunta ai preferiti');
+            }
+        }
+
+        async function removeFromFavorites(movieId) {
+            try {
+                const response = await fetch(`/favorites/remove/${movieId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    favorites = favorites.filter(m => m.id !== movieId);
+                    displayFavorites();
+                    alert('Film rimosso dai preferiti!');
+                }
+            } catch (error) {
+                alert('Errore durante la rimozione dai preferiti');
+            }
+        }
+
+        async function loadFavorites() {
+            try {
+                const response = await fetch('/favorites');
+                const data = await response.json();
+                favorites = data;
+                displayFavorites();
+            } catch (error) {
+                console.error('Errore nel caricamento dei preferiti:', error);
+            }
+        }
+
+        function displayFavorites() {
+            const favoritesList = document.getElementById('favorites-list');
+            if (favorites.length === 0) {
+                favoritesList.innerHTML = '<p>Nessun film nei preferiti</p>';
+                return;
+            }
+
+            favoritesList.innerHTML = favorites.map(movie => `
+                <div class="movie-card">
+                    ${movie.poster_path
+                        ? `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">` 
+                        : ''}
+                    <h3>${movie.title}</h3>
+                    <p>${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
+                    <button onclick="removeFromFavorites(${movie.id})">
+                        Rimuovi dai preferiti
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Carica i preferiti all'avvio della pagina
+        loadFavorites();
+    </script>
     <main>
         <!-- Sezione "I miei Preferiti" -->
         <section aria-labelledby="heading-preferiti">
             <h2 id="heading-preferiti">I miei Preferiti</h2>
-            <ul role="list" aria-label="Elenco film e serie preferite">
-            </ul>
+            <div id="favorites-list" class="movie-grid">
+                <!-- I preferiti verranno inseriti qui dinamicamente -->
+            </div>
         </section>
 
         <!-- Sezione "Le mie Liste Personalizzate" -->
         <section aria-labelledby="heading-liste">
             <h2 id="heading-liste">Le mie Liste Personalizzate</h2>
-            
+
             <!-- Creazione Lista -->
             <form action="/lists/create" method="post" aria-label="Crea una nuova lista">
                 <label for="new-list-name">Nome Nuova Lista:</label>
@@ -65,7 +164,7 @@
             <ul role="list" aria-label="Liste personalizzate salvate">
                 <li role="listitem">
                     <!-- Link alla Pagina Lista Specifica -->
-                    <a href="/lists/azione">Lista Azione</a>
+                    <a href="/lists/azione">Lista Esempio 1</a>
                     <!-- Gestione: Cancella Lista -->
                     <form action="/lists/delete/azione" method="post">
                         <input type="hidden" name="list_id" value="azione">
@@ -73,7 +172,7 @@
                     </form>
                 </li>
                 <li role="listitem">
-                    <a href="/lists/drama">Lista Drama</a>
+                    <a href="/lists/drama">Lista Esempio 2</a>
                     <form action="/lists/delete/drama" method="post">
                         <input type="hidden" name="list_id" value="drama">
                         <button type="submit">Cancella Lista</button>
@@ -81,7 +180,5 @@
                 </li>
             </ul>
         </section>
-    </main>
-
 </body>
 </html>

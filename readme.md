@@ -1,3 +1,3 @@
 create a .env file:
     add your database password as DATABASEPSSWD;
-    add your API KEY as API_KEY;
+    add your API KEY as TMDB_API_KEY;

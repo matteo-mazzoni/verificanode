@@ -6,6 +6,12 @@ import '../config/passport.js'; // esegue la configurazione della strategia JWT
 
 export const showLogin = (req, res) => res.render('login');
 export const showSignup = (req, res) => res.render('signup');
+export const showPreLogin = (req, res) => {
+    res.render('pre-login', {
+        title: 'Welcome to Movies App',
+        isLoggedIn: !!req.session.user
+    });
+};
 
 export const signup = async (req, res) => {
     const { username, password } = req.body;
@@ -67,3 +73,88 @@ export const logout = (req, res) => {
 
 // Middleware per proteggere le rotte
 export const authenticateJWT = passport.authenticate('jwt', { session: false });
+
+export const searchMovies = async (req, res) => {
+    const query = req.query.q;
+    const TMDB_API_KEY = process.env.TMDB_API_KEY;
+
+    if (!TMDB_API_KEY) {
+        return res.status(500).json({ 
+            error: 'TMDB_API_KEY non trovata nelle variabili ambiente' 
+        });
+    }
+
+    if (!query) {
+        return res.json({ movies: [] });
+    }
+
+    try {
+        const apiUrl = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=it-IT`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(`TMDB API error: ${response.status}`);
+        }
+
+        res.json({ movies: data.results || [] });
+    } catch (error) {
+        console.error('Search error:', error);
+        res.status(500).json({ 
+            error: 'Errore durante la ricerca',
+            details: error.message 
+        });
+    }
+};
+
+export const addToFavorites = async (req, res) => {
+    try {
+        const userId = req.session.user.id;
+        const movie = req.body;
+        
+        // Salva il film nei preferiti dell'utente nel database
+        await User.update(
+            { 
+                favorites: sequelize.fn('array_append', 
+                    sequelize.col('favorites'), 
+                    JSON.stringify(movie)
+                ) 
+            },
+            { where: { id: userId } }
+        );
+        
+        res.status(200).json({ message: 'Film aggiunto ai preferiti' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Errore durante l\'aggiunta ai preferiti' });
+    }
+};
+
+export const getFavorites = async (req, res) => {
+    try {
+        const userId = req.session.user.id;
+        const user = await User.findByPk(userId);
+        res.json(user.favorites || []);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Errore nel recupero dei preferiti' });
+    }
+};
+
+export const removeFromFavorites = async (req, res) => {
+    try {
+        const userId = req.session.user.id;
+        const movieId = req.params.movieId;
+        const user = await User.findByPk(userId);
+        
+        const updatedFavorites = (user.favorites || [])
+            .filter(movie => movie.id !== movieId);
+        
+        await user.update({ favorites: updatedFavorites });
+        
+        res.status(200).json({ message: 'Film rimosso dai preferiti' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Errore durante la rimozione dai preferiti' });
+    }
+};

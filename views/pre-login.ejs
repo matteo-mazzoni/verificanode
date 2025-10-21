@@ -5,16 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Film & Serie TV</title>
 </head>
+<script>
+        async function searchMovies() {
+            const query = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('searchResults');
+            if (!query) return;
+
+            try {
+                const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                resultsDiv.innerHTML = data.movies.map(movie => `
+                    <div class="movie-card">
+                        ${movie.poster_path
+                            ? `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">`
+                            : ''}
+                        <h3>${movie.title}</h3>
+                        <p>${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
+                        <p>${movie.overview ? movie.overview.substring(0, 100) + '...' : ''}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                resultsDiv.innerHTML = '<p>Errore durante la ricerca</p>';
+            }
+        }
+</script>
+
 <body>
     <header>
         <h1>Movie Tracker App</h1>
         <nav role="navigation" aria-label="Navigazione principale e ricerca">
             <!-- Barra di Ricerca per Film -->
-            <form action="/search" method="get">
-                <label for="search-input-pre">Cerca Film o Serie TV:</label>
-                <input type="search" name="query" id="search-input-pre" placeholder="Inserisci titolo...">
-                <button type="submit">Cerca</button>
-            </form>
+                <section>
+                <h3>Cerca Film</h3>
+            <input type="text" id="searchInput" placeholder="Cerca un film...">
+            <button onclick="searchMovies()">Cerca</button>
+            <div id="searchResults" class="movie-grid"></div>
+            </section>
             
             <!-- Controlli login e sign up -->
             <section role="group" aria-label="Accesso utente">
@@ -24,7 +51,6 @@
             </section>
         </nav>
     </header>
-
-
 </body>
 </html>
+

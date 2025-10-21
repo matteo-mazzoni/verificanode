@@ -41,5 +41,5 @@ app.all('*', (req, res) => {
 
 // Avvio server
 app.listen(PORT, () => {
-    console.log(`Server avviato su http://localhost:${PORT}`);
+    console.log(`Server avviato su http://localhost:${PORT}; per iniziare visita http://localhost:${PORT}/pre-login`);
 });
