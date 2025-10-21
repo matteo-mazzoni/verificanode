@@ -2,7 +2,6 @@ import passport from 'passport';
 import User from '../models/user.js';
 
 (async () => {
-	// Try to dynamically import passport-jwt so missing package doesn't crash app at import time
 	try {
 		const pkg = await import('passport-jwt');
 		const { Strategy: JwtStrategy, ExtractJwt } = pkg;
@@ -24,11 +23,8 @@ import User from '../models/user.js';
 			}
 		}));
 	} catch (err) {
-		// If passport-jwt is missing, print a clear action message but don't crash the whole app
-		/* eslint-disable no-console */
-		console.error('\n[passport] Impossibile importare "passport-jwt". Per abilitare la strategia JWT eseguire:\n\n    npm install passport-jwt\n\nDopo l\'installazione riavvia l\'app.\n');
-		/* eslint-enable no-console */
+		console.error('Dettagli errore:', err);
 	}
 })();
 
-export default passport;
+export { default } from 'passport';
