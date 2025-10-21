@@ -22,31 +22,31 @@ const Content = sequelize.define('Review', {
     }
 
     //COLUMN 3: status -- to be deleted
-    status: {
-        type: DataTypes.ENUM,
-        values: ['watched', 'to_watch', 'watching'],
-        allowNull: false
+    //status: {
+    //  type: DataTypes.ENUM,
+    //  values: ['watched', 'to_watch', 'watching'],
+    //  allowNull: false
     }
 
-    //COLUMN 4: User id
+    //COLUMN 3: User id
     userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: User,    // modello di riferimento
-            key: 'id'       // chiave primaria del modello User
+            model: User,    // reference model
+            key: 'id'       // primary key User model
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
     },
 
-    //COLUMN 5: User id
+    //COLUMN 4: User id
     contentId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Content, // modello di riferimento
-            key: 'id'       // chiave primaria del modello Content
+            model: Content, // reference model
+            key: 'id'       // primary key Content model
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
@@ -54,8 +54,13 @@ const Content = sequelize.define('Review', {
 
 }
 
-//options
+// adding Sequalize relations
+// A review belongs to a single user
+Review.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Review, { foreignKey: 'userId' });
 
-// add Sequalize relations
+// A review refers to a single content
+Review.belongsTo(Content, { foreignKey: 'contentId' });
+Content.hasMany(Review, { foreignKey: 'contentId' });
 
 export default Review;
