@@ -1,4 +1,4 @@
-// services/media.service.js
+
 import { sequelize } from "../config/db.js";
 import Media from "../models/Media.js";
 

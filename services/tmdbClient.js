@@ -1,4 +1,4 @@
-// services/tmdbClient.js
+
 import axios from "axios";
 
 /**

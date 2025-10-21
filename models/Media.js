@@ -1,4 +1,4 @@
-// models/Media.js
+
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
 
@@ -30,6 +30,11 @@ const Media = sequelize.define(
     externalIds: { type: DataTypes.JSON, allowNull: false, defaultValue: {} },
 
     lastSyncedAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+    // Aggiungi queste colonne per memorizzare gli aggregati calcolati
+avgPersonalRating: { type: DataTypes.FLOAT, allowNull: true },
+ratingsCount:      { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
+commentsCount:     { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
+
   },
   {
     tableName: "Media",
@@ -40,6 +45,7 @@ const Media = sequelize.define(
       { fields: ["title"] },
     ],
   }
+  
 );
 
 export default Media;

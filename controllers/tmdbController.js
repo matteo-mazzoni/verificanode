@@ -1,4 +1,4 @@
-// controllers/tmdbController.js
+
 import { tmdb, commonParams, imgUrl, pickTrailerUrl } from "../services/tmdbClient.js";
 import { upsertMediaFromDto } from "../services/media.service.js";
 

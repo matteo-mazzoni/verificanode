@@ -1,4 +1,4 @@
-// routes/tmdbRoutes.js
+
 import { Router } from "express";
 import { getDetails, search } from "../controllers/tmdbController.js";
 
