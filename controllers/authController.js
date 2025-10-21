@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 
 export const showLogin = (req, res) => res.render('login');
@@ -17,22 +18,31 @@ export const signup = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-const { username, password } = req.body;
+    const { username, password } = req.body;
     try {
         const user = await User.findOne({ where: { username } });
-        if (!user) return res.send('Utente non trovato');
+        if (!user) return res.status(401).json({ message: 'Utente non trovato' });
 
         const match = await bcrypt.compare(password, user.password);
-        if (!match) return res.send('Password errata');
+        if (!match) return res.status(401).json({ message: 'Password errata' });
 
-        req.session.user = user;
-        res.redirect('/products');
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            'your-secret-key', // Usa una variabile d'ambiente in produzione
+            { expiresIn: '24h' }
+        );
+
+        res.json({ token });
     } catch (error) {
         console.error(error);
-        res.send('Errore durante il login');
+        res.status(500).json({ message: 'Errore durante il login' });
     }
 };
 
 export const logout = (req, res) => {
-    req.session.destroy(() => res.redirect('/login'));
+    // Con JWT, il logout viene gestito lato client rimuovendo il token
+    res.json({ message: 'Logout effettuato con successo' });
 };
+
+// Middleware per proteggere le rotte
+export const authenticateJWT = passport.authenticate('jwt', { session: false });
