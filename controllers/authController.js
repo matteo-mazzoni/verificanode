@@ -38,11 +38,13 @@ export const login = async (req, res) => {
         req.session.user = { id: user.id, username: user.username };
         req.session.token = token;
 
+        // Assicurati che la sessione sia persistita prima di mostrare la dashboard
         req.session.save(err => {
             if (err) {
                 console.error('Errore salvataggio sessione:', err);
                 return res.status(500).send('Errore durante la creazione della sessione');
             }
+            // Renderizza direttamente la dashboard per evitare "pagina non trovata"
             return res.render('dashboard', { username: user.username, token });
         });
     } catch (error) {

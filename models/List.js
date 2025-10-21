@@ -22,7 +22,7 @@ List.createFromTMDB = async function (listId, apiKey) {
     if (!key) throw new Error('TMDB API key missing. Set TMDB_API_KEY or pass apiKey');
 
 // prova ad usare global.fetch (Node 18+). Se non presente, prova a importare node-fetch dinamicamente.
-let fetchImpl = global.fetch;
+let fetchImpl = globalThis.fetch;
 if (!fetchImpl) {
     try {
       //import dinamico
