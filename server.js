@@ -3,6 +3,10 @@ import express from 'express';
 import session from 'express-session';
 import path from 'node:path';
 import dotenv from 'dotenv';
+import dotenv from "dotenv";
+import { connectDB, sequelize } from "./config/db.js";
+import tmdbRoutes from "./routes/tmdbRoutes.js";
+import Media from "./models/Media.js"; // importa i modelli almeno una volta all'avvio
 dotenv.config();
 
 // db and models
@@ -43,3 +47,33 @@ app.all('*', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server avviato su http://localhost:${PORT}; per iniziare visita http://localhost:${PORT}/pre-login`);
 });
+
+//aggancio tmbdRoutes dopo che il server è avviato
+dotenv.config();
+app.use(express.json());
+
+await connectDB();
+initModels();
+await sequelize.sync({ alter: true });     // usa migration in prod
+
+app.use("/api/tmdb", tmdbRoutes);
+
+app.listen(PORT, () => console.log(`Server su http://localhost:${PORT}`));
+
+//
+dotenv.config();
+const app = express();
+app.use(express.json());
+
+// DB
+await connectDB();
+// registra i modelli sul connection scope
+sequelize.models.Media = Media;
+// crea/aggiorna tabelle in dev
+await sequelize.sync({ alter: true });
+
+// API
+app.use("/api/tmdb", tmdbRoutes);
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server su http://localhost:${PORT}`));

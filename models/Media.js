@@ -1,41 +1,45 @@
+// models/Media.js
+import { DataTypes } from "sequelize";
+import { sequelize } from "../config/db.js";
 
-const mongoose = require('mongoose');
+const Media = sequelize.define(
+  "Media",
+  {
+    id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
 
-const CastSchema = new mongoose.Schema({
-  personId: { type: Number, required: true },   // TMDb person id
-  name: { type: String, required: true },
-  character: { type: String },
-  profileUrl: { type: String }                  // immagine profilo già risolta
-}, { _id: false });
+    tmdbId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, unique: true },
+    mediaType: { type: DataTypes.ENUM("movie", "tv"), allowNull: false },
 
-const MediaSchema = new mongoose.Schema({
-  tmdbId: { type: Number, required: true, unique: true, index: true },
-  mediaType: { type: String, enum: ['movie','tv'], required: true },
+    title: { type: DataTypes.STRING(255), allowNull: false },
+    overview: { type: DataTypes.TEXT, allowNull: true },
+    year: { type: DataTypes.INTEGER, allowNull: true },
+    runtime: { type: DataTypes.INTEGER, allowNull: true },
 
-  title: { type: String, required: true, index: 'text' },
-  overview: { type: String },
-  year: { type: Number },
-  runtime: { type: Number },                    // min (movie) o durata media ep (tv)
-  genres: [{ type: String }],
+    genres: { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
 
-  voteAverage: { type: Number },                // TMDb vote_average (0–10)
-  voteCount: { type: Number },
+    voteAverage: { type: DataTypes.FLOAT, allowNull: true },
+    voteCount: { type: DataTypes.INTEGER, allowNull: true },
 
-  trailerUrl: { type: String },                 // es. https://youtube.com/watch?v=...
-  posterUrl: { type: String },
-  backdropUrl: { type: String },
-  gallery: [{ type: String }],                  // fino a ~10 backdrops
+    trailerUrl: { type: DataTypes.STRING(500), allowNull: true },
+    posterUrl: { type: DataTypes.STRING(500), allowNull: true },
+    backdropUrl: { type: DataTypes.STRING(500), allowNull: true },
+    gallery: { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
 
-  cast: [CastSchema],                            // primi 6–8 membri del cast
-  externalIds: {
-    imdb_id: { type: String },
-    tvdb_id: { type: Number },
-    facebook_id: { type: String },
-    instagram_id: { type: String },
-    twitter_id: { type: String }
+    cast: { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
+
+    externalIds: { type: DataTypes.JSON, allowNull: false, defaultValue: {} },
+
+    lastSyncedAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   },
+  {
+    tableName: "Media",
+    timestamps: true,
+    indexes: [
+      { fields: ["tmdbId"] },
+      { fields: ["mediaType"] },
+      { fields: ["title"] },
+    ],
+  }
+);
 
-  lastSyncedAt: { type: Date, default: Date.now } // per sapere quando rinfrescare
-}, { timestamps: true });
-
-module.exports = mongoose.model('Media', MediaSchema);
+export default Media;

@@ -1,6 +1,8 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
+import Media from "../models/Media.js";
 dotenv.config();
+sequelize.models.Media = Media;
 
 export const sequelize = new Sequelize('java', 'root', process.env.DATABASEPSSWD, {
     host: 'localhost',
