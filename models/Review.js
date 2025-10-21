@@ -7,54 +7,50 @@ import User from './User.js';
 // importing content model
 import Content from './Content.js';
 
-const Content = sequelize.define('Review', {
+// Review model definition
+const Review = sequelize.define('Review', {
     // COLUMN 1: ID (primary key)
     id: {
         type: DataTypes.INTEGER,
-        primaryKey: true,          // this is the primary key
-        autoIncrement: true        // automatically incremental
+        primaryKey: true,
+        autoIncrement: true
     },
 
-    //COLUMN 2: comment
+    // COLUMN 2: comment
     comment: {
         type: DataTypes.STRING,
         allowNull: true
-    }
+    },
 
-    //COLUMN 3: status -- to be deleted
-    //status: {
-    //  type: DataTypes.ENUM,
-    //  values: ['watched', 'to_watch', 'watching'],
-    //  allowNull: false
-    }
-
-    //COLUMN 3: User id
+    // COLUMN 3: User id
     userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: User,    // reference model
-            key: 'id'       // primary key User model
+            model: User,
+            key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
     },
 
-    //COLUMN 4: User id
+    // COLUMN 4: Content id
     contentId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Content, // reference model
-            key: 'id'       // primary key Content model
+            model: Content,
+            key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
     }
+});
 
-}
+// =====================
+// ASSOCIATIONS
+// =====================
 
-// adding Sequalize relations
 // A review belongs to a single user
 Review.belongsTo(User, { foreignKey: 'userId' });
 User.hasMany(Review, { foreignKey: 'userId' });
